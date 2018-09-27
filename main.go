@@ -4,15 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"io/ioutil"
-
 	"log"
 	"net/http"
 	"os"
-
-	"golang.org/x/net/context"
+	"time"
 )
 
 // getClient uses a Context and Config to retrieve a Token
@@ -78,12 +77,12 @@ type Requests struct {
 }
 
 type addConditionalFormatRule struct {
-	Rule `json:"rule,omitempty"`
+	Rule `json:"rule,"`
 }
 
 type Rule struct {
-	Ranges `json:"ranges,omitempty"`
-	BooleanRule `json:"booleanRule,omitempty"`
+	Ranges `json:"ranges,"`
+	BooleanRule `json:"booleanRule,"`
 }
 
 type Ranges struct {
@@ -97,24 +96,25 @@ type Ranges struct {
 type BooleanRule struct {
 	Format struct {
 		TextFormat struct {
-			Strikethrough bool `json:"strikethrough,omitempty"`
-		} `json:"textFormat,omitempty"`
-	} `json:"format,omitempty"`
+			Strikethrough bool `json:"strikethrough"`
+		} `json:"textFormat,"`
+	} `json:"format,"`
 
 	Condition struct {
-		Type string `json:"type,omitempty"`
-	}`json:"condition,omitempty"`
+		Type string `json:"type,"`
+	}`json:"condition,"`
 }
 
 func main() {
+	monthIndex := mapMonthToCell()
 
 	payload := &FinalRequest{}
 	payload.Ranges.SheetId = 0
-	payload.Ranges.StartRowIndex = 0
-	payload.Ranges.EndRowIndex = 1
-	payload.Ranges.StartColumnIndex = 0
-	payload.Ranges.EndColumnIndex = 1
-	payload.BooleanRule.Format.TextFormat.Strikethrough = true
+	payload.Ranges.StartRowIndex = 3 // Direct Debit Name Starting
+	payload.Ranges.EndRowIndex = 4 // Direct Debit Name Ending
+	payload.Ranges.StartColumnIndex = monthIndex // Month of the year starting
+	payload.Ranges.EndColumnIndex = monthIndex+1 // Month of the year ending
+	payload.BooleanRule.Format.TextFormat.Strikethrough = false
 	payload.BooleanRule.Condition.Type = "NOT_BLANK"
 
 	//b, err := json.Marshal(c)
@@ -123,7 +123,6 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-
 
 	ctx := context.Background()
 	b, err := ioutil.ReadFile("credentials/credentials.json")
@@ -156,4 +155,23 @@ func main() {
 	fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
 	fmt.Println("response Body:", string(body))
+}
+
+func SliceIndex(limit int, predicate func(i int) bool) int {
+	for i := 0; i < limit; i++ {
+		if predicate(i) {
+			return i
+		}
+	}
+	return -1
+}
+
+func mapMonthToCell() int {
+	currentMonth := time.Now().Format("January")
+
+	months := []string{"August", "September", "October", "November", "December"}
+	monthIndexRaw := SliceIndex(len(months), func(i int) bool { return months[i] == currentMonth })
+	monthIndex := monthIndexRaw + 1
+
+	return monthIndex
 }
