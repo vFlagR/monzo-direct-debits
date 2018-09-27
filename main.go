@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"io/ioutil"
+
 	"log"
 	"net/http"
 	"os"
 
 	"golang.org/x/net/context"
-	"golang.org/x/oauth2/google"
 )
 
 // getClient uses a Context and Config to retrieve a Token
@@ -68,7 +69,62 @@ func saveToken(file string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
+type FinalRequest struct {
+	Requests `json:"requests"`
+}
+
+type Requests struct {
+	addConditionalFormatRule `json:"addConditionalFormatRule"`
+}
+
+type addConditionalFormatRule struct {
+	Rule `json:"rule,omitempty"`
+}
+
+type Rule struct {
+	Ranges `json:"ranges,omitempty"`
+	BooleanRule `json:"booleanRule,omitempty"`
+}
+
+type Ranges struct {
+	SheetId int `json:"sheetId"`
+	StartRowIndex int `json:"startRowIndex"`
+	EndRowIndex int `json:"endRowIndex"`
+	StartColumnIndex int `json:"startColumnIndex"`
+	EndColumnIndex int `json:"endColumnIndex"`
+}
+
+type BooleanRule struct {
+	Format struct {
+		TextFormat struct {
+			Strikethrough bool `json:"strikethrough,omitempty"`
+		} `json:"textFormat,omitempty"`
+	} `json:"format,omitempty"`
+
+	Condition struct {
+		Type string `json:"type,omitempty"`
+	}`json:"condition,omitempty"`
+}
+
 func main() {
+
+	payload := &FinalRequest{}
+	payload.Ranges.SheetId = 0
+	payload.Ranges.StartRowIndex = 0
+	payload.Ranges.EndRowIndex = 1
+	payload.Ranges.StartColumnIndex = 0
+	payload.Ranges.EndColumnIndex = 1
+	payload.BooleanRule.Format.TextFormat.Strikethrough = true
+	payload.BooleanRule.Condition.Type = "NOT_BLANK"
+
+	//b, err := json.Marshal(c)
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+
 	ctx := context.Background()
 	b, err := ioutil.ReadFile("credentials/credentials.json")
 	if err != nil {
@@ -85,7 +141,7 @@ func main() {
 	url := "https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + ":batchUpdate"
 	fmt.Println("URL:>", url)
 
-	var jsonStr = []byte(`{"requests":[{"addConditionalFormatRule":{"rule":{"ranges":[{"sheetId":0,"startRowIndex":0,"endRowIndex":1,"startColumnIndex":0,"endColumnIndex":1}],"booleanRule":{"format":{"textFormat":{"strikethrough":true}},"condition":{"type":"NOT_BLANK"}}}}}]}`)
+	var jsonStr = []byte(jsonPayload)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	req.Header.Set("X-Custom-Header", "myvalue")
 	req.Header.Set("Content-Type", "application/json")
