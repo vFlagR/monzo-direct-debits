@@ -108,7 +108,7 @@ type BooleanRule struct {
 
 func main() {
 	monthIndex := mapMonthToCell()
-	debitIndex := mapDebitsToCell("a")
+	debitIndex := mapDebitsToCell("d")
 
 	payload := &FinalRequest{}
 	payload.Ranges.SheetId = 0
@@ -137,7 +137,7 @@ func main() {
 	}
 	client := getClient(ctx, config)
 
-	spreadsheetId := "1E0Zs4lrPkJuFVk0G3j7p0DIMnxIPYoz_1qE5nyliMS4"
+	spreadsheetId := "185D2SRLy7huAeprPCvmZTSbOr0fH5oQ2Rdtn-9ODj4o"
 
 	url := "https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + ":batchUpdate"
 	fmt.Println("URL:>", url)
@@ -177,14 +177,14 @@ func mapMonthToCell() int {
 
 func mapDebitsToCell(debitReference string) int {
 	debits := map[string]int{
-		"a": 1, // Netflix
-		"b": 2, // Ikea
-		"c": 3, // Prime
-		"d": 4, // Barclays
-		"e": 5, // Usenet
-		"f": 6, // GSuite
-		"g": 7, // Vodafone
-		"h": 8, // PSN
+		"a": 2, // Netflix
+		"b": 3, // Ikea
+		"c": 4, // Prime
+		"d": 5, // Barclays
+		"e": 6, // Usenet
+		"f": 7, // GSuite
+		"g": 8, // Vodafone
+		"h": 9, // PSN
 	}
 
 	if debitReference, ok := debits[debitReference]; ok {
