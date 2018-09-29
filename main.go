@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/net/context"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"golang.org/x/net/context"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 // getClient uses a Context and Config to retrieve a Token
@@ -81,16 +82,16 @@ type addConditionalFormatRule struct {
 }
 
 type Rule struct {
-	Ranges `json:"ranges,"`
+	Ranges      `json:"ranges,"`
 	BooleanRule `json:"booleanRule,"`
 }
 
 type Ranges struct {
-	SheetId int `json:"sheetId"`
-	StartRowIndex int `json:"startRowIndex"`
-	EndRowIndex int `json:"endRowIndex"`
+	SheetId          int `json:"sheetId"`
+	StartRowIndex    int `json:"startRowIndex"`
+	EndRowIndex      int `json:"endRowIndex"`
 	StartColumnIndex int `json:"startColumnIndex"`
-	EndColumnIndex int `json:"endColumnIndex"`
+	EndColumnIndex   int `json:"endColumnIndex"`
 }
 
 type BooleanRule struct {
@@ -102,19 +103,20 @@ type BooleanRule struct {
 
 	Condition struct {
 		Type string `json:"type,"`
-	}`json:"condition,"`
+	} `json:"condition,"`
 }
 
 func main() {
 	monthIndex := mapMonthToCell()
+	debitIndex := mapDebitsToCell("a")
 
 	payload := &FinalRequest{}
 	payload.Ranges.SheetId = 0
-	payload.Ranges.StartRowIndex = 3 // Direct Debit Name Starting
-	payload.Ranges.EndRowIndex = 4 // Direct Debit Name Ending
-	payload.Ranges.StartColumnIndex = monthIndex // Month of the year starting
-	payload.Ranges.EndColumnIndex = monthIndex+1 // Month of the year ending
-	payload.BooleanRule.Format.TextFormat.Strikethrough = false
+	payload.Ranges.StartRowIndex = debitIndex      // Direct Debit Name Starting
+	payload.Ranges.EndRowIndex = debitIndex + 1    // Direct Debit Name Ending
+	payload.Ranges.StartColumnIndex = monthIndex   // Month of the year starting
+	payload.Ranges.EndColumnIndex = monthIndex + 1 // Month of the year ending
+	payload.BooleanRule.Format.TextFormat.Strikethrough = true
 	payload.BooleanRule.Condition.Type = "NOT_BLANK"
 
 	//b, err := json.Marshal(c)
@@ -157,21 +159,38 @@ func main() {
 	fmt.Println("response Body:", string(body))
 }
 
-func SliceIndex(limit int, predicate func(i int) bool) int {
-	for i := 0; i < limit; i++ {
-		if predicate(i) {
-			return i
-		}
-	}
-	return -1
-}
-
 func mapMonthToCell() int {
+	months := map[string]int{
+		"August":    1,
+		"September": 2,
+		"October":   3,
+		"November":  4,
+		"December":  5,
+	}
+
 	currentMonth := time.Now().Format("January")
 
-	months := []string{"August", "September", "October", "November", "December"}
-	monthIndexRaw := SliceIndex(len(months), func(i int) bool { return months[i] == currentMonth })
-	monthIndex := monthIndexRaw + 1
+	monthIndex := months[currentMonth]
 
 	return monthIndex
+}
+
+func mapDebitsToCell(debitReference string) int {
+	debits := map[string]int{
+		"a": 1, // Netflix
+		"b": 2, // Ikea
+		"c": 3, // Prime
+		"d": 4, // Barclays
+		"e": 5, // Usenet
+		"f": 6, // GSuite
+		"g": 7, // Vodafone
+		"h": 8, // PSN
+	}
+
+	if debitReference, ok := debits[debitReference]; ok {
+		return debitReference
+	}
+
+	return 0
+
 }
