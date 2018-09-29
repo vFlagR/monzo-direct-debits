@@ -177,14 +177,21 @@ func mapMonthToCell() int {
 
 func mapDebitsToCell(debitReference string) int {
 	debits := map[string]int{
-		"a": 2, // Netflix
-		"b": 3, // Ikea
-		"c": 4, // Prime
-		"d": 5, // Barclays
-		"e": 6, // Usenet
-		"f": 7, // GSuite
-		"g": 8, // Vodafone
-		"h": 9, // PSN
+		"a": 2,  // Netflix
+		"b": 3,  // Ikea
+		"c": 4,  // Prime
+		"d": 5,  // Barclays
+		"e": 6,  // Usenet
+		"f": 7,  // GSuite
+		"g": 8,  // Vodafone
+		"h": 9,  // PSN
+		"i": 10, // Hertzner
+		"j": 11, // AWS
+		"k": 12, // O2
+		"l": 14, // Tesco
+		"m": 15, // BarclayCard
+		"n": 16, // Train
+		"o": 17, // Bus
 	}
 
 	if debitReference, ok := debits[debitReference]; ok {
